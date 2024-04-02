@@ -1,0 +1,590 @@
+#include <iostream>
+#include <math.h>
+#include <ctime>
+#include <cstring>  // для strlen
+#include <stdlib.h>
+#include <stdint.h> //uint64_t . __int64
+using namespace std;
+
+
+class Node{
+public:
+    char* data;
+    Node* next;
+
+  Node() {
+    data = new char[1];
+    data[0] = '\0';
+    next = NULL;
+  }
+
+  Node(char* data) {
+    this->data = new char[strlen(data) + 1];
+    strcpy(this->data, data);
+    this->data[strlen(data)] = '\0';
+    next = NULL;
+  }
+};
+
+
+class SList{
+private:
+    Node* head;
+
+
+
+public:
+    SList()
+    {
+        head = NULL;
+    }
+
+    SList(char* data)
+    {
+        head = NULL;
+        pushBack(data);
+    }
+    SList(const SList& other) : head(NULL){
+        Node* otherHead = other.head;
+        Node* prev = nullptr;
+
+        while (otherHead != nullptr) {
+            Node* newNode = new Node(otherHead->data);
+            if (head == nullptr) {
+                head = newNode;
+            } else {
+                prev->next = newNode;
+            }
+            prev = newNode;
+            otherHead = otherHead->next;
+        }
+    }
+
+
+
+    void pushBack( char* data){
+        Node* newNode = new Node(data);
+
+        if(checkList(data)){
+            return;
+        }
+
+        if(head == NULL){
+            this->head = newNode;
+            return;
+        }
+
+        Node* temp = head;
+        while(temp->next != NULL){
+            temp = temp->next;
+        }
+
+        temp->next = newNode;
+
+    }
+
+
+    void deleteNode(int nodeOFFset){
+        Node* temp1 = head, *temp2 = NULL;
+        int ListLen = 0;
+
+        if(head == NULL){
+            cout<<"List Empty"<<endl;
+        }
+
+        //Длина списка
+        while(temp1 != NULL){
+            temp1 = temp1->next;
+            ListLen++;
+        }
+
+        //Проверка на значение выходящее за массив
+        if(ListLen < nodeOFFset || nodeOFFset == 0  ){
+            cout<<"Index out of range"<<endl;
+            return;
+        }
+
+        temp1 = head;
+
+        //удаление самого первого элемента
+        if(nodeOFFset == 1){
+            head = head->next;
+            delete temp1;
+            return;
+        }
+
+        int countt = 1;
+        Node* curr = this->head;
+
+        while(countt < nodeOFFset - 1){
+            curr = curr->next;
+            countt++;
+        }
+
+        Node* removed = curr->next;
+
+        if(removed->next == NULL){
+            curr->next = NULL;
+        }else{
+            curr->next = removed->next;
+        }
+
+        delete removed;
+    }
+
+    Node GetHead(SList listR){
+        Node* headList = listR.head;
+        return *(headList);
+    }
+
+
+    bool checkList(const char* word) {
+      Node* temp = this->head;
+
+      while (temp != NULL) {
+        if (strcmp(temp->data, word) == 0){//возвращает 0, если строки равны
+          return true;
+        }
+        temp = temp->next;
+      }
+      return false;
+    }
+
+
+    bool emptyListCheck(){
+        Node* headList = this->head;
+
+        if(headList == NULL || headList == nullptr){
+            return false;
+        }
+        return true;
+    }
+
+
+    void ConcatList(SList& other){
+        Node* thisLS = this->head;
+        Node* otherLS = other.head;
+
+        while(otherLS != NULL){
+            this->pushBack(otherLS->data);
+            otherLS = otherLS->next;
+        }
+    }
+
+
+
+    void printList(){
+        Node* temp = this->head;
+
+        if(this->head == NULL){
+            cout<<"List Empty"<<endl;
+            return;
+        }
+
+        while(temp != NULL){
+            cout<<temp->data<<" "; //<<endl;
+            temp = temp->next;
+        }
+
+    }
+
+
+    void clearList(){
+        Node* temp;
+        while(temp != NULL){
+            temp = this->head;
+            temp = head->next;
+            delete temp;
+        }
+        this->head = NULL;
+    }
+
+    bool operator!=(const SList& ls2){
+
+        Node* nodaLS = this->head;
+        Node* nodaLS2 = ls2.head;
+
+        while(nodaLS != NULL && nodaLS2 != NULL){
+
+            if(nodaLS->data != nodaLS2->data){
+                return true;
+            }
+            nodaLS = nodaLS->next;
+            nodaLS2 = nodaLS2->next;
+        }
+
+        //else oba spika kaput (zakonhilis)
+        if(nodaLS == NULL && nodaLS2 == NULL){
+            return false;
+        }
+
+
+        return true;
+    }
+
+
+    SList operator+(SList& ls2){
+        SList result;
+        Node* nodaLS = this->head;
+        Node* nodaLS2 = ls2.head;
+
+        while(nodaLS != NULL){
+            result.pushBack(nodaLS->data);
+            nodaLS = nodaLS->next;
+        }
+
+        while(nodaLS2 != NULL){
+            result.pushBack(nodaLS2->data);
+            nodaLS2 = nodaLS2->next;
+        }
+
+        return result;
+    }
+
+
+
+    SList& operator=(SList& ls2){
+
+        if(this != &ls2){
+
+            Node* nodaLS2 = ls2.head;
+
+            this-> clearList();
+
+            while(nodaLS2 != NULL){
+                this->pushBack(nodaLS2->data);
+                nodaLS2 = nodaLS2->next;
+            }
+
+        }
+        return *this;
+    }
+
+
+
+    ~SList(){
+        Node* headLS = head;
+        while(headLS != NULL){
+            Node* nextt = headLS->next;
+            delete headLS;
+            headLS = nextt;
+
+        }
+    }
+
+
+};
+
+class HashTable{
+private:
+    SList* data;
+    int sizeHT = 10;
+
+public:
+    HashTable(int sizeHT) {
+        this->sizeHT = sizeHT;
+        data = new SList[sizeHT];
+    }
+
+    int HashFunction(int qSizeHT, const char* ht){
+        int hashValue = 0;
+        int i = 0;
+        while(ht[i] != '\0'){
+            hashValue = (hashValue * 31 + ht[i]) % qSizeHT;
+            ++i;
+        }
+        return hashValue;
+    }
+
+    void pushHashWord(char* data){
+        int hashValue = HashFunction(this->sizeHT,data);
+         if(!this->data[hashValue].checkList(data)){
+            this->data[hashValue].pushBack(data);
+         }
+    }
+
+
+    void printHT(){
+        for (int i = 0; i < sizeHT; i++ )
+        {
+            cout<<"\n Value"<<i<<":";
+            data[i].printList();
+        }
+    }
+
+
+
+
+    ~HashTable() {
+        delete[] data;
+    }
+
+
+};
+
+
+
+
+char* generateWord(){
+        char* word;
+        int wordSize = rand() % 19 + 1; // 1 ... 20
+        char* result = new char[wordSize + 1];
+
+        for (int i = 0; i < wordSize; i++ )
+        {
+            int randNum = rand() % 25; // rand() % 25;
+            char temp = static_cast<char> (randNum + 'a');
+            result[i] = temp;
+        }
+
+        result[wordSize] = '\0';
+
+        return result;
+    }
+
+
+
+
+
+
+int main()
+{
+    setlocale(LC_ALL, "Russian");
+    srand(time(NULL));
+
+    int n; // Число строк
+    cout << "Введите число строк (n <= 100000): ";
+    cin >> n;
+
+    int q; // Размер хеш-таблицы
+    cout << "Введите размер хеш-таблицы q: ";
+    cin >> q;
+
+    HashTable htb(q);
+
+    for (int i = 0; i < n; i++)
+    {
+        char *temp = generateWord();
+        htb.pushHashWord(temp);
+    }
+
+    htb.printHT();
+
+
+
+
+
+
+
+    cout << "\nEnd Program!" << endl;
+    return 0;
+
+//=====================================================
+////    HashTable ht(10);
+//    ht.pushHashWord("zzzzzz");
+//    ht.pushHashWord("qqqqqq");
+//    ht.pushHashWord("pppppp");
+//    ht.pushHashWord("iiiiii");
+//
+//    HashTable ht2(10);
+//    ht2.pushHashWord("ffffff");
+//    ht2.pushHashWord("dddddd");
+//    ht2.pushHashWord("ssssss");
+//    ht2.pushHashWord("aaaaaa");
+//
+//
+//    ht.printHT();
+//    ht2.printHT();
+//====================================================
+//        SList j("asd");
+//    j.pushBack("ask");
+//    j.pushBack("asd");
+//    j.printList();
+//
+//    SList k;
+//    k.pushBack("We cool!");
+//    k.printList();
+//
+//    SList p;
+//    p.pushBack("pop");
+//
+//    cout<<""<<endl;
+//    SList s;
+//    s.ConcatList(k);
+//    s.ConcatList(p);
+//    s.printList();
+//====================================================
+
+}
+
+
+
+
+//// Генерация случайных строк и добавление их в хеш-таблицу
+//    for(int i = 0; i < n; i++) {
+//        string randomString;
+//        int length = rand() % 10 + 1; // Длина строки от 1 до 10 символов
+//        for(int j = 0; j < length; j++) {
+//            char randomChar = 'a' + rand() % 26; // Генерация случайного символа
+//            randomString += randomChar;
+//        }
+//
+//      size_t hashValue = customHash(randomString) % q; // Хеширование строки
+//    hashTable[hashValue] = randomString; // Добавление строки в хеш-таблицу
+//    }
+
+//------------------------------------
+//------------------------------------
+//private:
+//    char* word;
+//    char* generateWord(){
+//        int wordSize = rand() % 19 + 1;
+//        char* result = new char[wordSize + 1];
+//
+//        for (int i = 0; i < wordSize; i++ )
+//        {
+//            int randNum = rand() % 25; // rand() % 25;
+//            char temp = static_cast<char> (randNum + 'a');
+//            result[i] = temp;
+//        }
+//
+//        result[wordSize] = '\0';
+//
+//        return result;
+//    }
+//------------------------------------
+//------------------------------------
+
+//    SList ls;
+//    ls.pushBack("Stalker1");
+//    ls.pushBack("Stalker2");
+//    ls.pushBack("Stalker3");
+//
+//    ls.deleteNode(4);
+//    ls.printList();
+
+//------------------------------
+
+//    SList j("asd");
+//    j.pushBack("ask");
+//    j.pushBack("asd");
+//    j.printList();
+//
+//    SList k;
+//    k.pushBack("We cool!");
+//    k.printList();
+//
+//    SList p;
+//    p.pushBack("pop");
+//
+//    cout<<""<<endl;
+//    SList s;
+//    s.ConcatList(k);
+//    s.ConcatList(p);
+//    s.printList();
+
+//------------------------------
+
+
+
+
+
+
+
+
+//    Node()
+//    {
+//        data = "";
+//        next = NULL;
+//    }
+//
+//    Node(char* data){
+//        this->data = data;
+//        this->next = NULL;
+//    }
+
+
+
+//    bool checkList(const char* word){
+//        Node* temp = this->head;
+//        while(temp != NULL)
+//        {
+//            if(temp->data == word){
+//                //cout<<"the line is in the list!"<<endl;
+//                return true;
+//            }
+//            temp = temp->next;
+//        }
+//        return false;
+//    }
+
+//    SList ConcatList(SList& ls2){
+//        SList result;
+//        Node* temp = result.head;
+//        Node* nodaLS2 = ls2.head;
+//
+//        while(nodaLS2 != NULL){
+//            result.pushBack(nodaLS2->data);
+//            nodaLS2 = nodaLS2->next;
+//        }
+//
+//        return result;
+//    }
+
+
+//2
+
+//    SList& ConcatList(const SList& ls2){
+//        SList result;
+//
+//        Node* nodaLS2 = ls2.head;
+//
+//        while(nodaLS2 != NULL){
+//            result.pushBack(nodaLS2->data);
+//            nodaLS2 = nodaLS2->next;
+//        }
+//
+//        return result;
+//    }
+
+
+//    SList ConcatList(SList& ls2){
+//        SList result;
+//        Node* temp = result.head;
+//        Node* nodaLS = this->head;
+//        Node* nodaLS2 = ls2.head;
+//
+//        while(nodaLS != NULL){
+//            result.pushBack(nodaLS->data);
+//            nodaLS = nodaLS->next;
+//            temp = temp->next;
+//        }
+//
+//        while(nodaLS2 != NULL){
+//            result.pushBack(nodaLS2->data);
+//            nodaLS2 = nodaLS2->next;
+//            temp = temp->next;
+//        }
+//
+//        return result;
+//    }
+
+
+
+//        SList& operator+(SList& ls2){
+//        SList result;
+//        Node* nodaLS = this->head;
+//        Node* nodaLS2 = ls2.head;
+//
+//        while(nodaLS != NULL){
+//            result.pushBack(nodaLS->data);
+//            nodaLS = nodaLS->next;
+//        }
+//
+//        while(nodaLS2 != NULL){
+//            result.pushBack(nodaLS2->data);
+//            nodaLS2 = nodaLS2->next;
+//        }
+//
+//        return result;
+//    }
